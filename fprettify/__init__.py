@@ -347,7 +347,7 @@ F90_KEYWORDS_RE = re.compile(r"\b(" + "|".join((
     "dimension", "do", "double", "else", "elseif", "elsewhere", "end",
     "enddo", "endfile", "endif", "entry", "equivalence", "exit",
     "external", "forall", "format", "function", "goto", "if",
-    "implicit", "include", "inquire", "integer", "intent",
+    "implicit", "include", "inquire", "integer", "intent(\s*(in)?(out)?\s*)?",
     "interface", "intrinsic", "logical", "module", "namelist", "none",
     "nullify", "only", "open", "operator", "optional", "parameter",
     "pause", "pointer", "precision", "print", "private", "procedure",
@@ -1007,6 +1007,8 @@ def replace_keywords_single_fline(f_line, case_dict):
                 part = swapcase(part, case_dict['constants'])
             elif F90_NUMBER_ALL_REC.match(part):
                 part = swapcase(part, case_dict['constants'])
+            else:
+                part = swapcase(part, case_dict['nonintrinsics'])
 
             line_parts[pos] = part
 
@@ -1992,8 +1994,8 @@ def run(argv=sys.argv):  # pragma: no cover
         parser.add_argument("--disable-whitespace", action='store_true', default=False, help="don't impose whitespace formatting")
         parser.add_argument("--enable-replacements", action='store_true', default=False, help="replace relational operators (e.g. '.lt.' <--> '<')")
         parser.add_argument("--c-relations", action='store_true', default=False, help="C-style relational operators ('<', '<=', ...)")
-        parser.add_argument("--case", nargs=4, default=[0,0,0,0], type=int, help="Enable letter case formatting of intrinsics by specifying which of "
-                            "keywords, procedures/modules, operators and constants (in this order) should be lowercased or uppercased - "
+        parser.add_argument("--case", nargs=5, default=[0,0,0,0,0], type=int, help="Enable letter case formatting of intrinsics by specifying which of "
+                            "keywords, procedures/modules, operators, constants, and non-intrinsic names (in this order) should be lowercased or uppercased - "
                             "   0: do nothing"
                             " | 1: lowercase"
                             " | 2: uppercase")
@@ -2104,7 +2106,8 @@ def run(argv=sys.argv):  # pragma: no cover
                     'keywords' : file_args.case[0],
                     'procedures' : file_args.case[1],
                     'operators' : file_args.case[2],
-                    'constants' : file_args.case[3]
+                    'constants' : file_args.case[3],
+                    'nonintrinsics' : file_args.case[4],
                     }
 
             stdout = file_args.stdout or directory == '-'
