@@ -70,6 +70,7 @@ import sys
 import logging
 import os
 import io
+import shutil
 
 sys.stdin = io.TextIOWrapper(
     sys.stdin.detach(), encoding='UTF-8', line_buffering=True)
@@ -1380,8 +1381,12 @@ def diff(a, b, a_name, b_name):
         difflib.unified_diff(a_lines, b_lines, fromfile=a_name, tofile=b_name, n=5)
     )
 
-def reformat_inplace(filename, stdout=False, diffonly=False, **kwargs):  # pragma: no cover
+def reformat_inplace(filename, stdout=False, diffonly=False, bkup_suffix="", **kwargs):  # pragma: no cover
     """reformat a file in place."""
+
+    if bkup_suffix:
+        shutil.copy(filename, filename + bkup_suffix)
+
     if filename == '-':
         infile = io.StringIO()
         infile.write(sys.stdin.read())
@@ -2025,6 +2030,7 @@ def run(argv=sys.argv):  # pragma: no cover
                             help="File or directory patterns to be excluded when searching for Fortran files to format")
         parser.add_argument('-f', '--fortran', type=str, action='append', default=[],
                             help="Overrides default fortran extensions recognized by --recursive. Repeat this option to specify more than one extension.")
+        parser.add_argument('-b', '--bkup_suffix', type=str, default='', help="Set suffix for backup copy of each unmodified source file. Default is no backup.")
         parser.add_argument('--version', action='version',
                             version='%(prog)s 0.3.7')
         return parser
@@ -2126,6 +2132,7 @@ def run(argv=sys.argv):  # pragma: no cover
                 reformat_inplace(filename,
                                  stdout=stdout,
                                  diffonly=diffonly,
+                                 bkup_suffix=args.bkup_suffix,
                                  impose_indent=not file_args.disable_indent,
                                  indent_size=file_args.indent,
                                  strict_indent=file_args.strict_indent,
