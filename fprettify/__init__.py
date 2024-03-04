@@ -1384,9 +1384,6 @@ def diff(a, b, a_name, b_name):
 def reformat_inplace(filename, stdout=False, diffonly=False, bkup_suffix="", **kwargs):  # pragma: no cover
     """reformat a file in place."""
 
-    if bkup_suffix:
-        shutil.copy(filename, filename + bkup_suffix)
-
     if filename == '-':
         infile = io.StringIO()
         infile.write(sys.stdin.read())
@@ -1420,6 +1417,8 @@ def reformat_inplace(filename, stdout=False, diffonly=False, bkup_suffix="", **k
             outfile.close()
 
             if hash_new.digest() != hash_old.digest():
+                if bkup_suffix:
+                    shutil.copy(filename, filename + bkup_suffix)
                 outfile = io.open(filename, 'w', encoding='utf-8')
                 outfile.write(newfile.getvalue())
 
