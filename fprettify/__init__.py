@@ -1603,7 +1603,7 @@ def reformat_ffile_combined(infile, outfile, impose_indent=True, indent_size=3, 
                 indent = [ind + len(label) - indent[0] for ind in indent]
 
         write_formatted_line(outfile, indent, lines, orig_lines, indent_special, llength,
-                             use_same_line, is_omp_conditional, label, orig_filename, stream.line_nr)
+                             use_same_line, is_omp_conditional, label, orig_filename, stream.line_nr, indent_size)
 
         do_indent, use_same_line = pass_defaults_to_next_line(f_line)
 
@@ -1840,7 +1840,7 @@ def get_manual_alignment(lines):
     return manual_lines_indent
 
 
-def write_formatted_line(outfile, indent, lines, orig_lines, indent_special, llength, use_same_line, is_omp_conditional, label, filename, line_nr):
+def write_formatted_line(outfile, indent, lines, orig_lines, indent_special, llength, use_same_line, is_omp_conditional, label, filename, line_nr, indent_size):
     """Write reformatted line to file"""
 
     for ind, line, orig_line in zip(indent, lines, orig_lines):
@@ -1871,7 +1871,7 @@ def write_formatted_line(outfile, indent, lines, orig_lines, indent_special, lle
         if ind_use + line_length <= (llength+1):  # llength (default 132) plus 1 newline char
             outfile.write(label_use + ' ' * (ind_use - len(label_use) + len(line) - len(line.lstrip(' '))) + '!$' * is_omp_conditional + line.lstrip(' '))
         elif line_length <= (llength+1):
-            outfile.write(label_use + ' ' * ((llength+1) - len(label_use) - len(line.lstrip(' '))) + '!$' * is_omp_conditional + line.lstrip(' '))
+            outfile.write(label_use + ' ' * ((llength+1) - len(label_use) - len(line.lstrip(' '))) + (' '*indent_size + '!$') * is_omp_conditional + line.lstrip(' '))
 
             log_message(LINESPLIT_MESSAGE+" (limit: "+str(llength)+")", "warning",
                         filename, line_nr)
@@ -2027,7 +2027,7 @@ def run(argv=sys.argv):  # pragma: no cover
                             help="Overrides default fortran extensions recognized by --recursive. Repeat this option to specify more than one extension.")
         parser.add_argument('-b', '--bkup_suffix', type=str, default='', help="Set suffix for backup copy of each unmodified source file. Default is no backup.")
         parser.add_argument('--version', action='version',
-                            version='%(prog)s 0.3.7')
+                            version='%(prog)s 0.3.7-emc')
         return parser
 
     parser = get_arg_parser(arguments)
